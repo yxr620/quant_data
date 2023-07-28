@@ -73,31 +73,12 @@ def download_pair(pair, client, save_dir="~/crypto_quant/data/realtime/"):
             endTime=int((next_day - timedelta(minutes=1)).timestamp()*1000)
         )
 
-        # for bar in bars:
-        #     timestamp = bar[0]
-        #     open = bar[1] 
-        #     high = bar[2]
-        #     low = bar[3] 
-        #     close = bar[4]
-        #     volume = bar[5]
-        #     end_stamp = bar[6]
-        #     quote_volume = bar[7]
-        #     num_trades = bar[8]
-        #     buy_base_vol = bar[9]
-        #     buy_quote_vol = bar[10]
-
-        #     readable_start_timestamp = datetime.fromtimestamp(timestamp/1000).strftime('%Y-%m-%d %H:%M:%S')
-        #     readable_end_timestamp = datetime.fromtimestamp(end_stamp/1000).strftime('%Y-%m-%d %H:%M:%S')
-
-        #     print(f"{readable_start_timestamp}-{readable_end_timestamp} Open: {open}, High: {high}, Low: {low}, Close: {close}, Volume: {volume}")
-
-
         # save table to csv
         total_bars.extend(bars)
         total_bars = [[pair] + row for row in total_bars]
         new_table = pd.DataFrame(total_bars, columns=['trading_pairs', 'start', 'open', 'high', 'low', 'close', 'volume', 'end', 'quote_volume', 'num_trades', 'taker_base_vol', 'taker_quote_vol', 'ignore'])
         table = pd.concat([new_table, table], ignore_index=True)
-        table = table.sort_values(by='trading_pairs').drop_duplicates()
+        table = table.sort_values(by='trading_pairs').drop_duplicates(subset=['trading_pairs', 'start'])
         table.to_csv(save_dir + f"{current_day.strftime('%Y%m%d')}.csv", index=False)
 
         # increase day
