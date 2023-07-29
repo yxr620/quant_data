@@ -95,12 +95,6 @@ if __name__ == "__main__":
     # Create Spot client instance using proxy
     client = Spot(proxies = proxies)
 
-
-    # last_time = get_last_time(pair="ETHUSDT")
-    # print(last_time)
-    # last_time = get_last_time(pair="BTCUSDT")
-    # print(last_time)
-    # exit()
-
     download_pair("BTCUSDT", client, "./realtime/")
+    download_pair("ETHUSDT", client, "./realtime/")
 
