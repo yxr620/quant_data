@@ -1,16 +1,19 @@
+import ccxt
+import requests
+import pandas as pd
 import os
 import pandas as pd
 
-# Import Spot client and datetime module
-from binance.spot import Spot  
+
+from datetime import datetime
 from datetime import datetime, timedelta
-from utils import first_time
+
 
 # decide when to start download data
 # return date from which starts to update, return the start time of the last entry
 def get_last_time(pair, save_dir="/home/yxr/crypto_quant/data/realtime"):
     file_list = os.listdir(save_dir)
-    if len(file_list) == 0: return first_time(pair)
+    if len(file_list) == 0: return datetime(2023, 1, 1)
     file_list.sort(reverse=True) # sort the list from present to old
 
     result = None
@@ -24,8 +27,9 @@ def get_last_time(pair, save_dir="/home/yxr/crypto_quant/data/realtime"):
         break
 
     if result == None:
-        return first_time(pair)
+        return datetime(2023, 1, 1)
     return result
+
 
 # download historical klines, the func will decide when to start download
 # param:
@@ -35,7 +39,7 @@ def download_pair(pair, client, save_dir="~/crypto_quant/data/realtime/"):
 
     # get the last updated datetime fmt
     start = get_last_time(pair, save_dir)
-    end = datetime.fromtimestamp(client.time()['serverTime']/1000)
+    end = datetime.fromtimestamp(client.fetch_time()/1000)
 
     # start = (start + timedelta(minutes=1))
     current_day = datetime(start.year, start.month, start.day)
@@ -53,34 +57,38 @@ def download_pair(pair, client, save_dir="~/crypto_quant/data/realtime/"):
         if os.path.exists(save_dir + f"{current_day.strftime('%Y%m%d')}.csv"):
             table = pd.read_csv(save_dir + f"{current_day.strftime('%Y%m%d')}.csv")
         else:
-            table = pd.DataFrame(columns=['trading_pairs', 'start', 'end', 'open', 'high', 'low', 'close', 'volume', 'quote_volume', 'num_trades', 'taker_base_vol', 'taker_quote_vol', 'ignore'])
+            table = pd.DataFrame(columns=['trading_pairs', 'start', 'open', 'high', 'low', 'close', 'volume'])
 
         # download data from current time to next_day
         next_day = current_day + timedelta(days=1)
         total_bars = []
-        while current_time + timedelta(minutes=500) < next_day:
-            bars = client.klines(
+        limit = 100
+        while current_time + timedelta(minutes=limit) < next_day:
+            bars = client.fetch_ohlcv(
                 pair,
                 "1m",
-                startTime=int(current_time.timestamp()*1000),
-                endTime=int((current_time + timedelta(minutes=500)).timestamp()*1000)
+                since=int(current_time.timestamp()*1000),
+                limit=limit
             )
             total_bars.extend(bars)
-            current_time += timedelta(minutes=500)
+            current_time += timedelta(minutes=limit)
         # get the tail data
-        bars = client.klines(
+
+        bars = client.fetch_ohlcv(
             pair,
             "1m",
-            startTime=int(current_time.timestamp()*1000),
-            endTime=int((next_day - timedelta(minutes=1)).timestamp()*1000)
+            since=int(current_time.timestamp()*1000),
+            limit=limit
         )
 
         # save table to csv
         total_bars.extend(bars)
         total_bars = [[pair] + row for row in total_bars]
-        new_table = pd.DataFrame(total_bars, columns=['trading_pairs', 'start', 'open', 'high', 'low', 'close', 'volume', 'end', 'quote_volume', 'num_trades', 'taker_base_vol', 'taker_quote_vol', 'ignore'])
+        new_table = pd.DataFrame(total_bars, columns=['trading_pairs', 'start', 'open', 'high', 'low', 'close', 'volume'])
         table = pd.concat([new_table, table], ignore_index=True)
-        table = table.sort_values(by='trading_pairs').drop_duplicates(subset=['trading_pairs', 'start'])
+        table = table.sort_values(by=['trading_pairs', 'start']).drop_duplicates(subset=['trading_pairs', 'start'])
+        table = table[table['start'] < next_day.timestamp() * 1000]
+
         table.to_csv(save_dir + f"{current_day.strftime('%Y%m%d')}.csv", index=False)
 
         # increase day
@@ -90,17 +98,13 @@ def download_pair(pair, client, save_dir="~/crypto_quant/data/realtime/"):
     return bars
 
 if __name__ == "__main__":
-    # Set up proxy dictionary
-    proxies = {'https': 'http://127.0.0.1:7890'}
+    my_proxies = {
+        'http': 'http://127.0.0.1:7890',
+        'https': 'http://127.0.0.1:7890',
+    }
+    exchange = ccxt.okx({
+        'proxies': my_proxies,
+    })
 
-    # Create Spot client instance using proxy
-    client = Spot(proxies = proxies)
-
-    print(first_time("ETHUSDT"))
-    print(first_time("BTCUSDT"))
-    print(first_time("BNBUSDT"))
-
-    download_pair("BNBUSDT", client, "./realtime/")
-    download_pair("BTCUSDT", client, "./realtime/")
-    download_pair("ETHUSDT", client, "./realtime/")
-
+    dir = "./okx/"
+    download_pair("BTC/USDT", exchange, dir)

@@ -20,20 +20,25 @@ def visualize_row(row):
     num_trades = row["num_trades"]
     taker_base_vol = row["taker_base_vol"]
     taker_quote_vol = row["taker_quote_vol"]
-    print(f"""
-Trading pair: {trading_pairs}
-Start: {start}, {row["end"]}
-Open: {open}  
-High: {high}
-Low: {low}   
-Close: {close}
-Volume: {volume}
-End: {end}, {row["end"]}
-Quote Volume: {quote_volume}  
-Number of trades: {num_trades}
-Taker base volume: {taker_base_vol}
-Taker quote volume: {taker_quote_vol}
-    """)
+    print(f"Trading pair: {trading_pairs} Start: {start}, Open: {open} End: {end}")
+
+# check trading pair integrity
+def check_pair(dir, pair):
+    file_list = os.listdir(dir)
+    file_list.sort()
+    for file in file_list[:-1]:
+        date = datetime.strptime(file.split(".")[0], "%Y%m%d")
+        table = pd.read_csv(os.path.join(dir, file))
+        correct_line_num = 24 * 60
+
+        # get of trading_pairs set
+        pair_set = set(table["trading_pairs"])
+        group = table.groupby("trading_pairs")
+        sub_table = group.get_group(pair)
+        if len(sub_table) != correct_line_num:
+            print(f"Error: {file} has incorrect line num for {pair}, get {len(sub_table)} lines")
+            visualize_row(sub_table.iloc[0])
+    return True
 
 # check trading pair integrity from two perspective:
 # 1. judge line correctness: total_line = 1440
