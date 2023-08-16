@@ -41,15 +41,17 @@ def download_pair(pair, client, save_dir="~/crypto_quant/data/realtime/"):
     start = get_last_time(pair, save_dir)
     end = datetime.fromtimestamp(client.fetch_time()/1000)
 
+    start = datetime(2018, 3, 1)
+    end = datetime(2023, 1, 1)
     # start = (start + timedelta(minutes=1))
     current_day = datetime(start.year, start.month, start.day)
     end_day = datetime(end.year, end.month, end.day)
     current_time = start
     print(f"start {start}")
     print(f"current_day {current_day}")
+    print(f"current_time {current_time}")
     print(f"end {end}")
     print(f"end_day {end_day}")
-    print(f"current_time {current_time}")
 
     while current_day <= end_day:
         print(current_day)
@@ -106,5 +108,5 @@ if __name__ == "__main__":
         'proxies': my_proxies,
     })
 
-    dir = "./okx/"
-    download_pair("BTC/USDT", exchange, dir)
+    download_pair("BTC/USDT", exchange, "./okx/BTCUSDT/")
+    # download_pair("ETH/USDT", exchange, "./okx/ETHUSDT/")

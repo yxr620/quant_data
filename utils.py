@@ -6,6 +6,12 @@ import urllib.request
 from datetime import datetime, timedelta
 from binance_historical_data import BinanceDataDumper
 
+def covert_ms(timestamp):
+    timestamp = timestamp / 1000  # 将时间戳除以1000以转换为秒级别的时间戳
+    dt = datetime.datetime.fromtimestamp(timestamp)
+    return dt
+
+
 def visualize_row(row):
     """Visualize a DataFrame row."""
     trading_pairs = row["trading_pairs"]
@@ -110,7 +116,7 @@ def fix_missing_data(src_dir):
         # save updated
 
 # get the first apearing time of a trading pair
-def first_time(pair):
+def first_time_binance(pair):
     proxy_url = 'http://127.0.0.1:7890'
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url}))
     urllib.request.install_opener(opener)

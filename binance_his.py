@@ -4,13 +4,13 @@ import pandas as pd
 # Import Spot client and datetime module
 from binance.spot import Spot  
 from datetime import datetime, timedelta
-from utils import first_time
+from utils import first_time_binance
 
 # decide when to start download data
 # return date from which starts to update, return the start time of the last entry
 def get_last_time(pair, save_dir="/home/yxr/crypto_quant/data/realtime"):
     file_list = os.listdir(save_dir)
-    if len(file_list) == 0: return first_time(pair)
+    if len(file_list) == 0: return first_time_binance(pair)
     file_list.sort(reverse=True) # sort the list from present to old
 
     result = None
@@ -24,7 +24,7 @@ def get_last_time(pair, save_dir="/home/yxr/crypto_quant/data/realtime"):
         break
 
     if result == None:
-        return first_time(pair)
+        return first_time_binance(pair)
     return result
 
 # download historical klines, the func will decide when to start download
@@ -97,11 +97,11 @@ if __name__ == "__main__":
     # Create Spot client instance using proxy
     client = Spot(proxies = proxies)
 
-    print(first_time("ETHUSDT"))
-    print(first_time("BTCUSDT"))
-    print(first_time("BNBUSDT"))
+    # print(first_time_binance("ETHUSDT"))
+    # print(first_time_binance("BTCUSDT"))
+    # print(first_time_binance("BNBUSDT"))
 
     # download_pair("BNBUSDT", client, "./realtime/")
-    # download_pair("BTCUSDT", client, "./realtime/")
-    download_pair("ETHUSDT", client, "./realtime/")
+    # download_pair("BTCUSDT", client, "./realtime/BTCUSDT/")
+    # download_pair("ETHUSDT", client, "./binance/ETHUSDT/")
 

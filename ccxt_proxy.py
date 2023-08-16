@@ -23,22 +23,22 @@ This is a basic test of proxy working
 '''
 binance exchange testing
 '''
-my_proxies = {
-    'http': 'http://127.0.0.1:7890',
-    'https': 'http://127.0.0.1:7890',
-}
-start = datetime(2020, 6, 2)
-end = datetime(2020, 6, 3)
-binance = ccxt.binance({
-    'proxies': my_proxies,
-})
+# my_proxies = {
+#     'http': 'http://127.0.0.1:7890',
+#     'https': 'http://127.0.0.1:7890',
+# }
+# start = datetime(2020, 6, 2)
+# end = datetime(2020, 6, 3)
+# binance = ccxt.binance({
+#     'proxies': my_proxies,
+# })
 
-ohlcv = binance.fetch_ohlcv('BTC/USDT', '1m', since=int(start.timestamp() * 1000), limit=100)
+# ohlcv = binance.fetch_ohlcv('BTC/USDT', '1m', since=int(start.timestamp() * 1000), limit=100)
 
-df = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
-df['time'] = pd.to_datetime(df['time'], unit='ms')  
-df.set_index('time', inplace=True)
-print(df)
+# df = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
+# df['time'] = pd.to_datetime(df['time'], unit='ms')  
+# df.set_index('time', inplace=True)
+# print(df)
 
 '''
 other exchange testing, okx
@@ -47,11 +47,14 @@ my_proxies = {
     'http': 'http://127.0.0.1:7890',
     'https': 'http://127.0.0.1:7890',
 }
-start = datetime(2020, 6, 2)
-end = datetime(2020, 6, 3)
+start = datetime(2018, 2, 20)
+end = datetime(2018, 3, 3)
 exchange = ccxt.okx({
     'proxies': my_proxies,
 })
+
+markets = exchange.load_markets()
+print(markets)
 exchange.options['defaultType'] = 'spot'
 
 ohlcv = exchange.fetch_ohlcv('BTC/USDT', '1m', since=int(start.timestamp() * 1000), limit=100)
